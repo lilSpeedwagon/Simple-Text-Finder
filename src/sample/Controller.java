@@ -31,12 +31,13 @@ public class Controller {
     private Main owner;
     private File choosenPath;
 
+    //connects Main function with GUI controller
     public void setOwner(Main owner)    {
         this.owner = owner;
     }
 
+    //invoke chooseFile() in Main and put it in path textField
     public void pathSelect(ActionEvent actionEvent) {
-        System.out.println("dir selecting...");
         choosenPath = owner.chooseFile();
         if (choosenPath != null){
             pathTextField.setText(choosenPath.getAbsolutePath());
@@ -45,6 +46,7 @@ public class Controller {
         }
     }
 
+    //invoke search() if it has correct path, extension and text pattern
     public void search(ActionEvent actionEvent) {
         if (choosenPath.exists() && !searchTextField.getText().isEmpty() && !extTextField.getText().isEmpty()) {
             LinkedList<SearchResult> results = owner.search(choosenPath, searchTextField.getText(), extTextField.getText());
@@ -52,16 +54,23 @@ public class Controller {
         }
     }
 
+    //recursive function for creating a branches and leafs of file tree (TreeItem)
     private void buildFileTreeLeaf(TreeItem<FileTree.Node> node)    {
         for (FileTree.Node leafNode : node.getValue().getChildren())    {
             TreeItem<FileTree.Node> leafTreeItem = new TreeItem<>(leafNode);
             if (!leafNode.isLeaf())
                 leafTreeItem.setExpanded(true);
+            else    {
+                //adding 'open' action for every file
+
+                //leafTreeItem.addEventHandler();
+            }
             node.getChildren().add(leafTreeItem);
             buildFileTreeLeaf(leafTreeItem);
         }
     }
 
+    //
     private void buildFileTree(LinkedList<SearchResult> results, File rootFile) {
         FileTree fileTree = new FileTree(results, rootFile);
 

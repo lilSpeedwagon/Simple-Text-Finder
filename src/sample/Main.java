@@ -19,6 +19,7 @@ public class Main extends Application {
 
     private Stage primaryStage;
 
+    //JavaFX init
     @Override
     public void start(Stage primaryStage) throws Exception{
         this.primaryStage = primaryStage;
@@ -37,6 +38,7 @@ public class Main extends Application {
     }
 
     public File chooseFile()    {
+        //opening file choose dialog window and return the choosen file
         DirectoryChooser dirChooser = new DirectoryChooser();
         dirChooser.setTitle("Choose directory to find...");
         File dir = dirChooser.showDialog(primaryStage);
@@ -45,7 +47,7 @@ public class Main extends Application {
     }
 
     public LinkedList<SearchResult> search(File dir, String text, String ext)    {
-
+        //init of search and getting list of results
         TextFinder finder = new TextFinder();
         LinkedList<SearchResult> results = finder.searchText(dir, text, ext);
 

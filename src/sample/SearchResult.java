@@ -5,11 +5,15 @@ import com.sun.javafx.geom.Vec2d;
 import java.io.File;
 import java.util.Vector;
 
+/*
+    structure which contains results of search in current file
+ */
+
 public class SearchResult {
-    private Vector<Vec2d> positions;
-    private File path;
-    private boolean empty = true;
-    private String text;
+    private Vector<Vec2d> positions;    //positions of every matching
+    private File path;                  //file which contains string pattern
+    private boolean empty = true;       //if no matching found
+    private String text;                //string pattern to match
 
     public SearchResult(File path, String text)  {
         this.path = path;

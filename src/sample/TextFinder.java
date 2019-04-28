@@ -20,9 +20,11 @@ public class TextFinder {
 
         SearchResult result = new SearchResult(file, text);
         try {
+            //opening file and init scanner
             FileReader reader = new FileReader(file);
             Scanner scanner = new Scanner(reader);
 
+            //search pattern in every line and save [ line, position ] of every matching
             int lineCounter = 0;
             while (scanner.hasNext())   {
                 String line = scanner.nextLine();
@@ -36,10 +38,11 @@ public class TextFinder {
                 lineCounter++;
             }
 
+            //closing file and scanner
             scanner.close();
             reader.close();
 
-            logger.info("Done. " + result.size() + " matches found.");
+            logger.info("Done. " + result.size() + " matching found.");
         }   catch(IOException e)    {
             logger.log(Level.WARNING, "Error. Can't open this file.");
         }
@@ -61,7 +64,8 @@ public class TextFinder {
                 }
             }
             if (file.isDirectory()) {
-                results.addAll(searchText(file, text, extension));
+                //recursive search in directory and concatinating results
+                results.addAll(searchInDir(file, text, extension));
             }
         }
 
@@ -75,11 +79,13 @@ public class TextFinder {
             results = new LinkedList<>();
             results.add(searchInFile(path, text));
         } else {
+            //if path is directory use recursive search in all included directories and files
             int totalFiles = 0;
             int totalMatches = 0;
 
             results = searchInDir(path, text, extension);
 
+            //counting of matching
             for (SearchResult result : results) {
                 if (!result.isEmpty())  {
                     totalFiles++;
@@ -87,7 +93,7 @@ public class TextFinder {
                 }
             }
 
-            logger.info("Searching is finished. " + totalFiles + " files and " + totalMatches + " matches founded.");
+            logger.info("Searching is finished. " + totalFiles + " files and " + totalMatches + " matching founded.");
         }
 
         return results;
