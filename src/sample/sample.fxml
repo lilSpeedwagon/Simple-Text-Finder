@@ -1,0 +1,50 @@
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TreeView?>
+<?import javafx.scene.control.TreeItem?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+
+<BorderPane fx:controller="sample.Controller"
+            xmlns:fx="http://javafx.com/fxml">
+
+    <left>
+        <ScrollPane fx:id="treeScrollPane"
+                    hbarPolicy="NEVER">
+            <TreeView fx:id="pathTreeView" />
+        </ScrollPane>
+    </left>
+
+    <right>
+        <TabPane fx:id="tabView">
+            <Tab>
+                <Label text="Write text to search..."/>
+            </Tab>
+        </TabPane>
+    </right>
+
+    <bottom>
+        <HBox maxHeight="80" minWidth="800" spacing="10" >
+            <Label text="Search in..."/>
+            <TextField fx:id="pathTextField"/>
+            <Button fx:id="pathDialogButton" text="Path" onAction="#pathSelect"/>
+            <Label text="File extension"/>
+            <TextField fx:id="extTextField" text=".log"/>
+            <Label text="Text to search..."/>
+            <TextField fx:id="searchTextField"/>
+            <Button fx:id="searchButton" text="Search" onAction="#search"/>
+        </HBox>
+    </bottom>
+
+
+</BorderPane>
