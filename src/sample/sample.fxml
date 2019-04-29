@@ -27,16 +27,13 @@
 
     <right>
         <TabPane fx:id="tabView">
-            <Tab>
-                <Label text="Write text to search..."/>
-            </Tab>
         </TabPane>
     </right>
 
     <bottom>
         <HBox maxHeight="80" minWidth="800" spacing="10" >
             <Label text="Search in..."/>
-            <TextField fx:id="pathTextField"/>
+            <TextField fx:id="pathTextField" text="C:\docs\programms\Java\test_finder"/>
             <Button fx:id="pathDialogButton" text="Path" onAction="#pathSelect"/>
             <Label text="File extension"/>
             <TextField fx:id="extTextField" text=".log"/>

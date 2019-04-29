@@ -1,21 +1,24 @@
 package sample;
 
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 
 import java.awt.*;
+import java.awt.TextArea;
 import java.io.File;
 import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.function.BiConsumer;
 
 public class Controller {
     public TextField pathTextField;
@@ -24,12 +27,12 @@ public class Controller {
     public TreeView pathTreeView;
     public TabPane tabView;
     public ScrollPane treeScrollPane;
-    public Button searchBurron;
     public TextField extTextField;
     public Button searchButton;
 
     private Main owner;
-    private File choosenPath;
+    private FileTree fileTree;
+    private TabManager tabManager;
 
     //connects Main function with GUI controller
     public void setOwner(Main owner)    {
@@ -38,9 +41,9 @@ public class Controller {
 
     //invoke chooseFile() in Main and put it in path textField
     public void pathSelect(ActionEvent actionEvent) {
-        choosenPath = owner.chooseFile();
-        if (choosenPath != null){
-            pathTextField.setText(choosenPath.getAbsolutePath());
+        File path = owner.chooseFile();
+        if (path != null){
+            pathTextField.setText(path.getAbsolutePath());
         } else  {
             pathTextField.setText(null);
         }
@@ -48,31 +51,36 @@ public class Controller {
 
     //invoke search() if it has correct path, extension and text pattern
     public void search(ActionEvent actionEvent) {
-        if (choosenPath.exists() && !searchTextField.getText().isEmpty() && !extTextField.getText().isEmpty()) {
-            LinkedList<SearchResult> results = owner.search(choosenPath, searchTextField.getText(), extTextField.getText());
-            buildFileTree(results, choosenPath);
+        if (!pathTextField.getText().isEmpty()) {
+            File path = new File(pathTextField.getText());
+            if (path.exists() && !extTextField.getText().isEmpty()) {
+                LinkedList<SearchResult> results = owner.search(path, searchTextField.getText(), extTextField.getText());
+                buildFileTree(results, path);
+            }
         }
     }
 
     //recursive function for creating a branches and leafs of file tree (TreeItem)
-    private void buildFileTreeLeaf(TreeItem<FileTree.Node> node)    {
-        for (FileTree.Node leafNode : node.getValue().getChildren())    {
-            TreeItem<FileTree.Node> leafTreeItem = new TreeItem<>(leafNode);
-            if (!leafNode.isLeaf())
-                leafTreeItem.setExpanded(true);
-            else    {
-                //adding 'open' action for every file
+    private void buildFileTreeLeaf(TreeItem<FileTree.Node> treeNode)    {
 
-                //leafTreeItem.addEventHandler();
+        BiConsumer<? super File,? super FileTree.Node> addTreeItem = new BiConsumer<File, FileTree.Node>() {
+            @Override
+            public void accept(File file, FileTree.Node node) {
+                TreeItem<FileTree.Node> leafTreeItem = new TreeItem<>(node);
+                if (!node.isLeaf())
+                    leafTreeItem.setExpanded(true);
+
+                treeNode.getChildren().add(leafTreeItem);
+                buildFileTreeLeaf(leafTreeItem);
             }
-            node.getChildren().add(leafTreeItem);
-            buildFileTreeLeaf(leafTreeItem);
-        }
+        };
+
+        treeNode.getValue().getChildren().forEach(addTreeItem);
     }
 
-    //
+
     private void buildFileTree(LinkedList<SearchResult> results, File rootFile) {
-        FileTree fileTree = new FileTree(results, rootFile);
+        fileTree = new FileTree(results, rootFile);
 
         FileTree.Node root = fileTree.getRoot();
         TreeItem<FileTree.Node> rootItem = new TreeItem<>(root);
@@ -81,5 +89,40 @@ public class Controller {
         buildFileTreeLeaf(rootItem);
 
         pathTreeView.setRoot(rootItem);
+
+        //event handler for clicking on file
+        pathTreeView.addEventHandler(MouseEvent.MOUSE_CLICKED, new FileClickHandler());
+    }
+
+    //handler for clicking on file in FileTree
+    private class FileClickHandler implements EventHandler<MouseEvent>    {
+        @Override
+        public void handle(MouseEvent event) {
+            Node graphicNode = event.getPickResult().getIntersectedNode();
+
+            // Accept clicks only on node cells, and not on empty spaces of the TreeView
+            if (graphicNode instanceof TreeCell && ((TreeCell) graphicNode).getText() != null) {
+                TreeItem<FileTree.Node> node = ((TreeCell) graphicNode).getTreeItem();
+
+                SearchResult result = fileTree.getResultFromNode(node.getValue());
+
+                //init after objects from .fxml init
+                if(tabManager == null)  {
+                    tabManager = new TabManager(tabView);
+                }
+                tabManager.addTab(result);
+            }
+
+            if (graphicNode instanceof  Text)   {
+                Text text = (Text) graphicNode;
+                //if click on text label - looking for file with this name
+                for (SearchResult result : fileTree.getResults())   {
+                    if (text.getText().equals(result.getFile().getName()))    {
+                        tabManager.addTab(result);
+                        break;
+                    }
+                }
+            }
+        }
     }
 }
