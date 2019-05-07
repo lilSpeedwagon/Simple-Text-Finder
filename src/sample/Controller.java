@@ -29,6 +29,9 @@ public class Controller {
     public ScrollPane treeScrollPane;
     public TextField extTextField;
     public Button searchButton;
+    public Label fileInfo;
+    public Button prevButton;
+    public Button nextButton;
 
     private Main owner;
     private FileTree fileTree;
@@ -94,6 +97,16 @@ public class Controller {
         pathTreeView.addEventHandler(MouseEvent.MOUSE_CLICKED, new FileClickHandler());
     }
 
+    public void nextMatching(ActionEvent actionEvent) {
+        if (tabManager != null)
+            tabManager.moveMatchingCursor(1);
+    }
+
+    public void prevMatching(ActionEvent actionEvent) {
+        if (tabManager != null)
+            tabManager.moveMatchingCursor(-1);
+    }
+
     //handler for clicking on file in FileTree
     private class FileClickHandler implements EventHandler<MouseEvent>    {
         @Override
@@ -108,7 +121,7 @@ public class Controller {
 
                 //init after objects from .fxml init
                 if(tabManager == null)  {
-                    tabManager = new TabManager(tabView);
+                    tabManager = new TabManager(tabView, fileInfo);
                 }
                 tabManager.addTab(result);
             }
@@ -118,6 +131,9 @@ public class Controller {
                 //if click on text label - looking for file with this name
                 for (SearchResult result : fileTree.getResults())   {
                     if (text.getText().equals(result.getFile().getName()))    {
+                        if(tabManager == null)  {
+                            tabManager = new TabManager(tabView, fileInfo);
+                        }
                         tabManager.addTab(result);
                         break;
                     }
@@ -125,4 +141,6 @@ public class Controller {
             }
         }
     }
+
+
 }

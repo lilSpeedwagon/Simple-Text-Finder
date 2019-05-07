@@ -16,22 +16,35 @@
 <?import javafx.scene.layout.BorderPane?>
 
 <BorderPane fx:controller="sample.Controller"
-            xmlns:fx="http://javafx.com/fxml">
+            xmlns:fx="http://javafx.com/fxml"
+            maxWidth="860" minWidth="860"
+            maxHeight="600" minHeight="600">
 
     <left>
         <ScrollPane fx:id="treeScrollPane"
-                    hbarPolicy="NEVER">
-            <TreeView fx:id="pathTreeView" />
+                    minWidth="200" maxWidth="200"
+                    minHeight="560" maxHeight="560">
+            <TreeView fx:id="pathTreeView"
+            minHeight="550"
+            minWidth="200"/>
         </ScrollPane>
     </left>
 
     <right>
-        <TabPane fx:id="tabView">
-        </TabPane>
+        <VBox spacing="10" minWidth="660">
+            <TabPane fx:id="tabView" minWidth="640"
+                        minHeight="520">
+            </TabPane>
+            <HBox maxHeight="40" spacing="10" alignment="BOTTOM_RIGHT">
+                <Label fx:id="fileInfo" text="No file selected"/>
+                <Button fx:id="prevButton" text="prev" onAction="#prevMatching"/>
+                <Button fx:id="nextButton" text="next" onAction="#nextMatching"/>
+            </HBox>
+        </VBox>
     </right>
 
     <bottom>
-        <HBox maxHeight="80" minWidth="800" spacing="10" >
+        <HBox maxHeight="40" minWidth="800" spacing="10" >
             <Label text="Search in..."/>
             <TextField fx:id="pathTextField" text="C:\docs\programms\Java\test_finder"/>
             <Button fx:id="pathDialogButton" text="Path" onAction="#pathSelect"/>
