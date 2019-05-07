@@ -21,13 +21,9 @@
             maxHeight="600" minHeight="600">
 
     <left>
-        <ScrollPane fx:id="treeScrollPane"
-                    minWidth="200" maxWidth="200"
-                    minHeight="560" maxHeight="560">
-            <TreeView fx:id="pathTreeView"
-            minHeight="550"
-            minWidth="200"/>
-        </ScrollPane>
+        <TreeView fx:id="pathTreeView"
+                  minHeight="550"
+                  minWidth="200" maxWidth="200"/>
     </left>
 
     <right>

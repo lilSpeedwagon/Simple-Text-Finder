@@ -25,17 +25,16 @@ public class TextFinder {
             Scanner scanner = new Scanner(reader);
 
             //search pattern in every line and save [ line, position ] of every matching
-            int lineCounter = 0;
+            int posCounter = 0;
             while (scanner.hasNext())   {
                 String line = scanner.nextLine();
 
                 int position = line.indexOf(text);
                 while (position != -1)    {
-                    result.addPosition(lineCounter, position);
-                    line = line.substring(position + 1);
-                    position = line.indexOf(text);
+                    result.addPosition(posCounter + position);
+                    position = line.indexOf(text, position + 1);
                 }
-                lineCounter++;
+                posCounter += line.length() + 1;
             }
 
             //closing file and scanner

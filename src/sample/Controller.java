@@ -1,5 +1,6 @@
 package sample;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -19,14 +20,12 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.BiConsumer;
-
 public class Controller {
     public TextField pathTextField;
     public Button pathDialogButton;
     public TextField searchTextField;
     public TreeView pathTreeView;
     public TabPane tabView;
-    public ScrollPane treeScrollPane;
     public TextField extTextField;
     public Button searchButton;
     public Label fileInfo;
@@ -36,6 +35,17 @@ public class Controller {
     private Main owner;
     private FileTree fileTree;
     private TabManager tabManager;
+
+    public Controller() {
+
+        //init TabManager after init of scene from fxml
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                tabManager = new TabManager(tabView, fileInfo);
+            }
+        });
+    }
 
     //connects Main function with GUI controller
     public void setOwner(Main owner)    {
@@ -119,10 +129,6 @@ public class Controller {
 
                 SearchResult result = fileTree.getResultFromNode(node.getValue());
 
-                //init after objects from .fxml init
-                if(tabManager == null)  {
-                    tabManager = new TabManager(tabView, fileInfo);
-                }
                 tabManager.addTab(result);
             }
 
@@ -131,9 +137,6 @@ public class Controller {
                 //if click on text label - looking for file with this name
                 for (SearchResult result : fileTree.getResults())   {
                     if (text.getText().equals(result.getFile().getName()))    {
-                        if(tabManager == null)  {
-                            tabManager = new TabManager(tabView, fileInfo);
-                        }
                         tabManager.addTab(result);
                         break;
                     }

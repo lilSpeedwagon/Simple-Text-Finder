@@ -25,10 +25,9 @@ public class TabManager {
     private HashMap<SearchResult, Tab> openedFileTabs = new HashMap<>();
 
     private SearchResult currentResult;
-    private int currentMatching;
+    private int currentMatching = 0;
     private int totalMatching;
 
-    public TabManager() {}
     public TabManager(TabPane pane, Label fileInfo) {
         this.pane = pane;
         this.fileInfo = fileInfo;
@@ -85,6 +84,7 @@ public class TabManager {
                                     currentMatching = 0;
                                     totalMatching = result.size();
                                     currentResult = result;
+                                    moveMatchingCursor(0);
                                     showFileInfo(result.getFile().getName(), currentMatching, totalMatching);
                                     break;
                                 }
@@ -107,10 +107,11 @@ public class TabManager {
         }
     }
 
-    private void putCursorTo(Vec2d pos)  {
+    private void putCursorTo(int pos)  {
+        int length = currentResult.getText().length();
         Tab currentTab = pane.getSelectionModel().getSelectedItem();
         TextArea area = (TextArea) currentTab.getContent();
-        area.selectRange(0, (int) pos.y);
+        area.selectRange(pos, pos + length);
     }
 
     private void showFileInfo(String fileName, int pos, int size)  {
@@ -118,18 +119,16 @@ public class TabManager {
         fileInfo.setText(text);
     }
 
-    public void closeTab()   {
-
-    }
-
     public void moveMatchingCursor(int inc) {
         if (!openedFileTabs.isEmpty())  {
-            Tab currentTab = pane.getSelectionModel().getSelectedItem();
             currentMatching += inc;
             if (currentMatching >= totalMatching)
                 currentMatching = 0;
             if (currentMatching < 0)
                 currentMatching = totalMatching - 1;
+
+            int matching = currentResult.getPositions().get(currentMatching);
+            putCursorTo(matching);
             showFileInfo(currentResult.getFile().getName(), currentMatching, totalMatching);
         }
     }

@@ -10,7 +10,7 @@ import java.util.Vector;
  */
 
 public class SearchResult {
-    private Vector<Vec2d> positions;    //positions of every matching
+    private Vector<Integer> positions;    //positions of every matching
     private File path;                  //file which contains string pattern
     private boolean empty = true;       //if no matching found
     private String text;                //string pattern to match
@@ -21,12 +21,12 @@ public class SearchResult {
         positions = new Vector<>();
     }
 
-    public void addPosition(int line, int pos)    {
-        positions.add(new Vec2d(line, pos));
+    public void addPosition(int pos)    {
+        positions.add(pos);
         empty = false;
     }
 
-    public Vector<Vec2d> getPositions()   {
+    public Vector<Integer> getPositions()   {
         return positions;
     }
 
