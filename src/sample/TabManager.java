@@ -1,19 +1,15 @@
 package sample;
 
-import com.sun.javafx.geom.Vec2d;
 import javafx.event.Event;
 import javafx.event.EventHandler;
-import javafx.scene.Cursor;
 import javafx.scene.control.*;
 
-import javax.xml.soap.Text;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Scanner;
-import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,6 +29,7 @@ public class TabManager {
         this.fileInfo = fileInfo;
     }
 
+    //fill the text area with file content
     private void addToAreaFromFile(TextArea area, File sourceFile)    {
         try {
             FileReader reader = new FileReader(sourceFile);
@@ -52,6 +49,7 @@ public class TabManager {
         }
     }
 
+    //add new tab from resulting file
     public void addTab(SearchResult result)  {
         try {
             if (!result.isEmpty())  {
@@ -107,6 +105,7 @@ public class TabManager {
         }
     }
 
+    //select matching in the text
     private void putCursorTo(int pos)  {
         int length = currentResult.getText().length();
         Tab currentTab = pane.getSelectionModel().getSelectedItem();
@@ -114,11 +113,13 @@ public class TabManager {
         area.selectRange(pos, pos + length);
     }
 
+    //make file info string and display it
     private void showFileInfo(String fileName, int pos, int size)  {
         String text = "File: " + fileName + ". Matching " + (pos + 1) + " / " + size;
         fileInfo.setText(text);
     }
 
+    //move selection cursor to prev/next matching
     public void moveMatchingCursor(int inc) {
         if (!openedFileTabs.isEmpty())  {
             currentMatching += inc;

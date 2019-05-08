@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.geometry.Insets?>
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="sample.Modal">
+
+    <VBox spacing="20">
+        <padding>
+            <Insets left="10" top="10"/>
+        </padding>
+        <Label fx:id="text" alignment="CENTER" text="Illegal path or file extension."/>
+        <Button fx:id="button" alignment="CENTER" text="Ok" onAction="#close"/>
+    </VBox>
+
+</AnchorPane>

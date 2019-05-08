@@ -3,23 +3,15 @@ package sample;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Text;
-import javafx.stage.FileChooser;
-
-import java.awt.*;
-import java.awt.TextArea;
 import java.io.File;
-import java.nio.file.Path;
-import java.util.*;
-import java.util.function.BiConsumer;
+
 public class Controller {
     public TextField pathTextField;
     public Button pathDialogButton;
@@ -32,19 +24,16 @@ public class Controller {
     public Button prevButton;
     public Button nextButton;
 
+    private String searchStr = "Search";
+    private String searchingStr = "Searching";
+
     private Main owner;
     private FileTree fileTree;
     private TabManager tabManager;
 
     public Controller() {
-
         //init TabManager after init of scene from fxml
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                tabManager = new TabManager(tabView, fileInfo);
-            }
-        });
+        Platform.runLater(() -> tabManager = new TabManager(tabView, fileInfo));
     }
 
     //connects Main function with GUI controller
@@ -65,53 +54,65 @@ public class Controller {
     //invoke search() if it has correct path, extension and text pattern
     public void search(ActionEvent actionEvent) {
         if (!pathTextField.getText().isEmpty()) {
-            File path = new File(pathTextField.getText());
-            if (path.exists() && !extTextField.getText().isEmpty()) {
-                LinkedList<SearchResult> results = owner.search(path, searchTextField.getText(), extTextField.getText());
-                buildFileTree(results, path);
+            TFile path = new TFile(pathTextField.getText());
+            if (path.exists() && !extTextField.getText().isEmpty() && !searchTextField.getText().isEmpty()) {
+                ResultQueue results = owner.search(path, searchTextField.getText(), extTextField.getText());
+
+                //search matching in new thread
+                TreeBuilder builder = new TreeBuilder(results, path);
+                Thread treeBuildingThread = new Thread(builder);
+                treeBuildingThread.start();
+
+                Platform.runLater(() -> {
+                    searchButton.setDisable(true);
+                    searchButton.setText(searchingStr);
+                });
+            }   else    {
+                owner.showModal();
             }
         }
     }
 
-    //recursive function for creating a branches and leafs of file tree (TreeItem)
-    private void buildFileTreeLeaf(TreeItem<FileTree.Node> treeNode)    {
 
-        BiConsumer<? super File,? super FileTree.Node> addTreeItem = new BiConsumer<File, FileTree.Node>() {
-            @Override
-            public void accept(File file, FileTree.Node node) {
-                TreeItem<FileTree.Node> leafTreeItem = new TreeItem<>(node);
-                if (!node.isLeaf())
-                    leafTreeItem.setExpanded(true);
 
-                treeNode.getChildren().add(leafTreeItem);
-                buildFileTreeLeaf(leafTreeItem);
+    //asynch builder of file tree
+    class TreeBuilder implements Runnable {
+        private final ResultQueue results;
+        private final TFile path;
+
+        public TreeBuilder(ResultQueue results, TFile path) {
+            this.results = results;
+            this.path = path;
+        }
+
+        @Override
+        public void run() {
+            synchronized (results) {
+                pathTreeView.setRoot(null);
+                fileTree = new FileTree(pathTreeView, path);
+
+                while (!results.isSearchFinished() || !results.isEmpty()) {
+                    fileTree.addResult(results.pop());
+                }
+
+                //event handler for clicking on file
+                pathTreeView.addEventHandler(MouseEvent.MOUSE_CLICKED, new FileClickHandler());
+
+                Platform.runLater(() -> {
+                    searchButton.setDisable(false);
+                    searchButton.setText(searchStr);
+                });
             }
-        };
-
-        treeNode.getValue().getChildren().forEach(addTreeItem);
+        }
     }
 
-
-    private void buildFileTree(LinkedList<SearchResult> results, File rootFile) {
-        fileTree = new FileTree(results, rootFile);
-
-        FileTree.Node root = fileTree.getRoot();
-        TreeItem<FileTree.Node> rootItem = new TreeItem<>(root);
-        rootItem.setExpanded(true);
-
-        buildFileTreeLeaf(rootItem);
-
-        pathTreeView.setRoot(rootItem);
-
-        //event handler for clicking on file
-        pathTreeView.addEventHandler(MouseEvent.MOUSE_CLICKED, new FileClickHandler());
-    }
-
+    //button click controller
     public void nextMatching(ActionEvent actionEvent) {
         if (tabManager != null)
             tabManager.moveMatchingCursor(1);
     }
 
+    //button click controller
     public void prevMatching(ActionEvent actionEvent) {
         if (tabManager != null)
             tabManager.moveMatchingCursor(-1);
@@ -125,13 +126,18 @@ public class Controller {
 
             // Accept clicks only on node cells, and not on empty spaces of the TreeView
             if (graphicNode instanceof TreeCell && ((TreeCell) graphicNode).getText() != null) {
-                TreeItem<FileTree.Node> node = ((TreeCell) graphicNode).getTreeItem();
+                TreeItem<TFile> node = ((TreeCell) graphicNode).getTreeItem();
 
-                SearchResult result = fileTree.getResultFromNode(node.getValue());
+                SearchResult result = fileTree.getResultFromNode(node);
 
                 tabManager.addTab(result);
             }
 
+            // Accept clicks on text
+            /*
+                here I've got some trouble:
+                files with the same name can't to be recognized because of the same Text objects on their nodes
+             */
             if (graphicNode instanceof  Text)   {
                 Text text = (Text) graphicNode;
                 //if click on text label - looking for file with this name

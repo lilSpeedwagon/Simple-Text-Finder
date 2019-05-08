@@ -1,12 +1,9 @@
 package sample;
 
-import sun.rmi.runtime.Log;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -15,10 +12,18 @@ public class TextFinder {
 
     private static Logger logger = Logger.getLogger(TextFinder.class.getName());
 
+    private ResultQueue results;
+    private int totalFiles;
+    private int totalMatches;
+
+    public TextFinder(ResultQueue results)  {
+        this.results = results;
+    }
+
     private SearchResult searchInFile(File file, String text)   {
         logger.info("Reading file " + file.getName() + "...");
-
-        SearchResult result = new SearchResult(file, text);
+        TFile tfile = new TFile(file);
+        SearchResult result = new SearchResult(tfile, text);
         try {
             //opening file and init scanner
             FileReader reader = new FileReader(file);
@@ -33,6 +38,7 @@ public class TextFinder {
                 while (position != -1)    {
                     result.addPosition(posCounter + position);
                     position = line.indexOf(text, position + 1);
+                    totalMatches++;
                 }
                 posCounter += line.length() + 1;
             }
@@ -48,54 +54,44 @@ public class TextFinder {
         return result;
     }
 
-    private LinkedList<SearchResult> searchInDir(File dir, String text, String extension)   {
+    //recursive search
+    private void searchInDir(File dir, String text, String extension)   {
         logger.info("Searching in directory " + dir.toString() + "...");
 
-        LinkedList<SearchResult> results = new LinkedList<>();
-
+        //open all files in current dir
         for (File file : dir.listFiles()){
             if (file.isFile())  {
                 if (file.getName().endsWith(extension)) {
                     SearchResult result = searchInFile(file, text);
                     if (!result.isEmpty()) {
-                        results.add(result);
+                        results.push(result);
+                        totalFiles++;
                     }
                 }
             }
             if (file.isDirectory()) {
-                //recursive search in directory and concatinating results
-                results.addAll(searchInDir(file, text, extension));
+                searchInDir(file, text, extension);
             }
         }
-
-        return results;
     }
 
-    public LinkedList<SearchResult> searchText(File path, String text, String extension)    {
-        LinkedList<SearchResult> results;
+    public void searchText(File path, String text, String extension)    {
+        if (text.isEmpty())
+            return;
+
+        results.start();
+        totalFiles = 0;
+        totalMatches = 0;
 
         if (path.isFile())  {
-            results = new LinkedList<>();
-            results.add(searchInFile(path, text));
+            results.push(searchInFile(path, text));
         } else {
             //if path is directory use recursive search in all included directories and files
-            int totalFiles = 0;
-            int totalMatches = 0;
-
-            results = searchInDir(path, text, extension);
-
-            //counting of matching
-            for (SearchResult result : results) {
-                if (!result.isEmpty())  {
-                    totalFiles++;
-                    totalMatches += result.size();
-                }
-            }
+            searchInDir(path, text, extension);
 
             logger.info("Searching is finished. " + totalFiles + " files and " + totalMatches + " matching founded.");
         }
 
-        return results;
-
+        results.finish();
     }
 }
